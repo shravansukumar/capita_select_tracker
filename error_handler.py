@@ -30,7 +30,7 @@ class ErrorHandler:
     def check_TLS(self):                                         # TLS error
         try:
             print('^^^^^ checking for TLS ^^^^^^^^')
-            requests.get(self.url_to_be_tested, timeout=60)
+            requests.get(self.url_to_be_tested, timeout=180)
         except requests.exceptions.Timeout as e:
             self.error_counter = self.error_counter + 1
             self.logger.log('TLS_error_timeout: '+ self.url_to_be_tested)
@@ -41,24 +41,11 @@ class ErrorHandler:
             elif 'hostname' in str(e):
                 self.logger.log('TLS_error: '+ self.url_to_be_tested)
                 self.log_tls_errors()
-#            error_count = self.logger.tls_error_dict['mobile' if self.isMobile == True else 'desktop']
- #           error_count = error_count + 1
-  #          self.logger.tls_error_dict['mobile' if self.isMobile == True else 'desktop'] = error_count 
-   #         self.error_counter = self.error_counter + 1
-
-    def time_out(self):                              # timeout error code 
-        try:
-            self.driver.set_page_load_timeout(60)
-            if self.url_to_be_tested != None:
-                self.driver.get(self.url_to_be_tested)
-        except (TimeoutException,WebDriverException) as e:
-            self.logger.log('time_out: '+str(e.msg) + ' ' + self.url_to_be_tested)
-            self.error_counter = self.error_counter + 1         
 
     def domain_not_exit(self):      # domian does not exit we do not need this in anaylsis report
         try:
             print('^^^^^^ trying to seaarch for domain ^^^^^^^^')
-            requests.get(self.url_to_be_tested,timeout=60)
+            requests.get(self.url_to_be_tested,timeout=180)
         except (requests.exceptions.ConnectionError,requests.exceptions.Timeout) as e:
             self.error_counter = self.error_counter + 1
             self.logger.log('domain_does_not_exit: '+ str(e) +' '+ self.url_to_be_tested)
@@ -75,12 +62,10 @@ class ErrorHandler:
         try:
             print('^^^^ Started running all checks ^^^^^')
             self.check_TLS()
-            #self.time_out()
             self.domain_not_exit()
         except (Exception, WebDriverException, TimeoutException, ConnectionAbortedError, ConnectionError,ConnectionRefusedError,ConnectionResetError) as e:
             self.logger.log('Unknown exception: '+ str(e) +' '+ self.url_to_be_tested) 
             self.error_counter = self.error_counter + 1
-            #self.driver.refresh()
 
 
             

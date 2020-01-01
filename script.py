@@ -83,7 +83,7 @@ def main():
             website_visit['pageload_start_ts'] = time.time() # start time
 
             try: 
-                driver.set_page_load_timeout(60)
+                driver.set_page_load_timeout(180)
                 driver.get(url)
                 website_visit['pageload_end_ts']=time.time()
                 time.sleep(10)
