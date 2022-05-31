@@ -256,3 +256,5 @@ zustimmen und schließen
 zustimmen und weiter
 Принять
 Я согласен
+allow essential and optional cookies
+accepteren

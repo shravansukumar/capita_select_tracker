@@ -1,3 +1,4 @@
 *.png
 *.json
 chromedriver
+.DS_Store
