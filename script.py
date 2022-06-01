@@ -1,24 +1,24 @@
 # -*- coding: utf-8 -*-
+from asyncio.log import logger
 from seleniumwire import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException
 from tld import get_fld
 from PIL import Image
-from datetime import datetime
 import time
 import json
-import sys, getopt
-import requests
 import argparse
 import csv
+from UniversalLogger import UniversalLogger
+
+from error_handler import ErrorHandler
 
 ## Crawler desktop and mobile // DONE
 ## Headless // DONE
-## Logs
-## Logs accept button success
+## Logs // DONE
+## Logs accept button success // DONE
 ## Global timeout value
 ## Screenshot names change for mobile and desktop // DONE
 ## Handle domains that do not exist //a //DONE
@@ -33,6 +33,7 @@ def main():
     parser.add_argument('-head','--isHeadless',type=str,default='headfull',choices=['headless','headfull'])
     parsed_stuff = parser.parse_args()
     urls = []
+    logger = UniversalLogger()
 
     successful_clicks_count = 0 
     errored_clicks_count = 0
@@ -62,52 +63,28 @@ def main():
         if isHeadless:
             webdriver_options.add_argument('--headless')
         driver = webdriver.Chrome("./chromedriver",chrome_options = webdriver_options)
-        user_agent = driver.execute_script("return navigator.userAgent;")
-        print(user_agent)
+        #user_agent = driver.execute_script("return navigator.userAgent;")
         return driver
 
     def get_screenshot_name(domain: str, type:str):
         return domain+'_'+parsed_stuff.isMobile+type+'.png'
-
         
-    def check_TLS(URL):                                         # TLS error
-        try:
-            response = requests.get(URL)
-            return False
-        except requests.exceptions.RequestException as e:
-            if 'CERTIFICATE_VERIFY_FAILED' in str(e):
-                print('TLS_error')
-            elif 'hostname' in str(e):
-                print('TLS_error')
-            return True
-
-    def time_out(url):                              # timeout error code 
-        try:
-            driver.set_page_load_timeout(30)
-            driver.get(url)
-        except TimeoutException as e:
-            print('time_out')
-            driver.quit()
-
-    def domain_not_exit(url):      # domian does not exit we do not need this in anaylsis report
-        try:
-            response = requests.get(url)
-        except requests.exceptions.ConnectionError as e:
-                print('domain_does_not_exit')
-                driver.quit()
-
-    stripped_urls = urls[0:2]
+    stripped_urls = urls[0:1]
     accept_words_list = set()            # add the txt list as a set
     for w in open("accept_words.txt", "r").read().splitlines():
         if not w.startswith("#") and not w == "":
                 accept_words_list.add(w)
 
     print(stripped_urls)
+    #stripped_urls = ['http://expried.badssl.com']
     for url in stripped_urls: 
-        if check_TLS(url):
-            print ("TLS error")
-        else:
-            driver = configure_driver()
+        driver = configure_driver()
+        error_handler = ErrorHandler(driver,url,logger)
+        
+        if error_handler.error_counter > 0:
+            print("************************* error count************ "+ str(error_handler.error_counter))
+            driver.quit()
+        else:    
             website_visit={} # dictionary for generating the json for each file
             website_visit['pageload_start_ts'] = time.time() # start time 
             driver.get(url)
@@ -117,11 +94,11 @@ def main():
             website_visit['domain'] = get_fld(url)  # the domain of every website
             website_visit['crawl_mode']= 'mobile' if isMobile == True else 'desktop'  # need to be changed later to desktop or mobile
 
-            contents = driver.find_elements_by_css_selector("a, button, div, span, form, p")
+            #contents = driver.find_elements_by_css_selector("a, button, div, span, form, p")
+            contents = driver.find_elements(by=By.CSS_SELECTOR,value="a, button, div, span, form, p")
 
             candidate = None
             screen_shot_name = get_screenshot_name(website_visit['domain'],'_pre_consent') 
-            print(screen_shot_name)
             driver.save_screenshot(screen_shot_name) # taking the secreenshot before accepting
 
             for c in contents:
@@ -131,25 +108,25 @@ def main():
                         break
                 except:
                     website_visit['consent_status']="errored"
-                    errored_clicks_count = errored_clicks_count + 1
-
-                            
+                    errored_clicks_count = errored_clicks_count + 1           
             # Click the candidate
             if candidate is not None:
                 try: 
                     candidate.click()
                     website_visit['consent_status']="clicked"
+                    logger.log("Successfully clicked accept for: " + url)
                     successful_clicks_count = successful_clicks_count + 1
                 except:
                     website_visit['consent_status']="errored"
+                    logger.log("Error in clicking accept for: " + url)
                     errored_clicks_count = errored_clicks_count + 1
             else:
                 website_visit["consent_status"]="not_found"
+                logger.log("Accept button not found for: " + url)
                 not_found_clicks.append(url)
 
             time.sleep(10)
             screen_shot_name_post = get_screenshot_name(website_visit['domain'],'_post_consent')
-            print(screen_shot_name_post)
             driver.save_screenshot(screen_shot_name_post) # taking the secreenshot after  accepting the cookies
 
             req_response=list()
@@ -178,6 +155,7 @@ def main():
             with open(file_name, 'w') as out:
                 json.dump(website_visit, out,indent=4)
             driver.quit()
+    logger.dump_json()
 
 if __name__ == "__main__":
     main()
