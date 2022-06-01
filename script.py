@@ -17,8 +17,8 @@ from error_handler import ErrorHandler
 
 ## Crawler desktop and mobile // DONE
 ## Headless // DONE
-## Logs
-## Logs accept button success 
+## Logs // DONE
+## Logs accept button success // DONE
 ## Global timeout value
 ## Screenshot names change for mobile and desktop // DONE
 ## Handle domains that do not exist //a //DONE
@@ -69,14 +69,14 @@ def main():
     def get_screenshot_name(domain: str, type:str):
         return domain+'_'+parsed_stuff.isMobile+type+'.png'
         
-    stripped_urls = urls[0:2]
+    stripped_urls = urls[0:1]
     accept_words_list = set()            # add the txt list as a set
     for w in open("accept_words.txt", "r").read().splitlines():
         if not w.startswith("#") and not w == "":
                 accept_words_list.add(w)
 
     print(stripped_urls)
-    stripped_urls = ['http://expried.badssl.com']
+    #stripped_urls = ['http://expried.badssl.com']
     for url in stripped_urls: 
         driver = configure_driver()
         error_handler = ErrorHandler(driver,url,logger)
@@ -94,7 +94,8 @@ def main():
             website_visit['domain'] = get_fld(url)  # the domain of every website
             website_visit['crawl_mode']= 'mobile' if isMobile == True else 'desktop'  # need to be changed later to desktop or mobile
 
-            contents = driver.find_elements_by_css_selector("a, button, div, span, form, p")
+            #contents = driver.find_elements_by_css_selector("a, button, div, span, form, p")
+            contents = driver.find_elements(by=By.CSS_SELECTOR,value="a, button, div, span, form, p")
 
             candidate = None
             screen_shot_name = get_screenshot_name(website_visit['domain'],'_pre_consent') 
@@ -113,12 +114,15 @@ def main():
                 try: 
                     candidate.click()
                     website_visit['consent_status']="clicked"
+                    logger.log("Successfully clicked accept for: " + url)
                     successful_clicks_count = successful_clicks_count + 1
                 except:
                     website_visit['consent_status']="errored"
+                    logger.log("Error in clicking accept for: " + url)
                     errored_clicks_count = errored_clicks_count + 1
             else:
                 website_visit["consent_status"]="not_found"
+                logger.log("Accept button not found for: " + url)
                 not_found_clicks.append(url)
 
             time.sleep(10)
