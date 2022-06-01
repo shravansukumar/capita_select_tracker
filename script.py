@@ -15,13 +15,30 @@ import requests
 import argparse
 import csv
 
+## Crawler desktop and mobile // DONE
+## Headless // DONE
+## Logs
+## Logs accept button success
+## Global timeout value
+## Screenshot names change for mobile and desktop // DONE
+## Handle domains that do not exist //a //DONE
+## Page load errors //a //DONE
+## Add all variables needed for the analysis // DONE (yesterday itself?)
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-m','--isMobile',type=str,choices=['mobile','desktop'])
     parser.add_argument('-u','--singleURL',type=str)
     parser.add_argument('-i','--csvFileUrl',type=str)
+    parser.add_argument('-head','--isHeadless',type=str,default='headfull',choices=['headless','headfull'])
     parsed_stuff = parser.parse_args()
     urls = []
+
+    successful_clicks_count = 0 
+    errored_clicks_count = 0
+    not_found_clicks = []
+    isMobile = True if parsed_stuff.isMobile == 'mobile' else False
+    isHeadless = True if parsed_stuff.isHeadless == 'headless' else False
 
     def build_url():
         if parsed_stuff.singleURL != None:
@@ -38,6 +55,21 @@ def main():
 
     build_url()
 
+    def configure_driver():
+        webdriver_options = webdriver.ChromeOptions()
+        if isMobile:    
+            webdriver_options.add_argument('--user-agent="Mozilla/5.0 (Windows Phone 10.0; Android 4.2.1; Microsoft; Lumia 640 XL LTE) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Mobile Safari/537.36 Edge/12.10166"')
+        if isHeadless:
+            webdriver_options.add_argument('--headless')
+        driver = webdriver.Chrome("./chromedriver",chrome_options = webdriver_options)
+        user_agent = driver.execute_script("return navigator.userAgent;")
+        print(user_agent)
+        return driver
+
+    def get_screenshot_name(domain: str, type:str):
+        return domain+'_'+parsed_stuff.isMobile+type+'.png'
+
+        
     def check_TLS(URL):                                         # TLS error
         try:
             response = requests.get(URL)
@@ -48,7 +80,6 @@ def main():
             elif 'hostname' in str(e):
                 print('TLS_error')
             return True
-
 
     def time_out(url):                              # timeout error code 
         try:
@@ -65,10 +96,7 @@ def main():
                 print('domain_does_not_exit')
                 driver.quit()
 
-
-    #print(urls)
-
-    stripped_urls = urls[0:7]
+    stripped_urls = urls[0:2]
     accept_words_list = set()            # add the txt list as a set
     for w in open("accept_words.txt", "r").read().splitlines():
         if not w.startswith("#") and not w == "":
@@ -79,36 +107,31 @@ def main():
         if check_TLS(url):
             print ("TLS error")
         else:
-            driver = webdriver.Chrome("./chromedriver")
+            driver = configure_driver()
             website_visit={} # dictionary for generating the json for each file
-
-
             website_visit['pageload_start_ts'] = time.time() # start time 
-       
             driver.get(url)
             website_visit['pageload_end_ts']=time.time()
             time.sleep(10)
-
             website_visit['post_pageload_url'] = driver.current_url   #loaded the url
-
-
             website_visit['domain'] = get_fld(url)  # the domain of every website
-            website_visit['crawl_mode']= parsed_stuff.isMobile  # need to be changed later to desktop or mobile
+            website_visit['crawl_mode']= 'mobile' if isMobile == True else 'desktop'  # need to be changed later to desktop or mobile
 
             contents = driver.find_elements_by_css_selector("a, button, div, span, form, p")
 
             candidate = None
-            screen=website_visit['domain']  + "_m_desktop_pre_consent.png"
-
-            driver.save_screenshot(screen) # taking the secreenshot before accepting
+            screen_shot_name = get_screenshot_name(website_visit['domain'],'_pre_consent') 
+            print(screen_shot_name)
+            driver.save_screenshot(screen_shot_name) # taking the secreenshot before accepting
 
             for c in contents:
                 try: 
-                        if c.text.lower().strip(" ✓›!\n") in accept_words_list:
-                            candidate = c  
-                            break
+                    if c.text.lower().strip(" ✓›!\n") in accept_words_list:
+                        candidate = c  
+                        break
                 except:
                     website_visit['consent_status']="errored"
+                    errored_clicks_count = errored_clicks_count + 1
 
                             
             # Click the candidate
@@ -116,14 +139,18 @@ def main():
                 try: 
                     candidate.click()
                     website_visit['consent_status']="clicked"
+                    successful_clicks_count = successful_clicks_count + 1
                 except:
                     website_visit['consent_status']="errored"
+                    errored_clicks_count = errored_clicks_count + 1
             else:
                 website_visit["consent_status"]="not_found"
+                not_found_clicks.append(url)
 
             time.sleep(10)
-            screen=website_visit['domain']  + "_m_desktop_post_consent.png"
-            driver.save_screenshot(screen) # taking the secreenshot after  accepting the cookies
+            screen_shot_name_post = get_screenshot_name(website_visit['domain'],'_post_consent')
+            print(screen_shot_name_post)
+            driver.save_screenshot(screen_shot_name_post) # taking the secreenshot after  accepting the cookies
 
             req_response=list()
 
