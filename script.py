@@ -4,6 +4,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
 from tld import get_fld
 from PIL import Image
 from datetime import datetime
@@ -64,16 +65,36 @@ def main():
         user_agent = driver.execute_script("return navigator.userAgent;")
         print(user_agent)
         return driver
+
+    def get_screenshot_name(domain: str, type:str):
+        return domain+'_'+parsed_stuff.isMobile+type+'.png'
+
         
-    def check_TLS(URL):
+    def check_TLS(URL):                                         # TLS error
         try:
             response = requests.get(URL)
             return False
         except requests.exceptions.RequestException as e:
+            if 'CERTIFICATE_VERIFY_FAILED' in str(e):
+                print('TLS_error')
+            elif 'hostname' in str(e):
+                print('TLS_error')
             return True
 
-    def get_screenshot_name(domain: str, type:str):
-        return domain+'_'+parsed_stuff.isMobile+type+'.png'
+    def time_out(url):                              # timeout error code 
+        try:
+            driver.set_page_load_timeout(30)
+            driver.get(url)
+        except TimeoutException as e:
+            print('time_out')
+            driver.quit()
+
+    def domain_not_exit(url):      # domian does not exit we do not need this in anaylsis report
+        try:
+            response = requests.get(url)
+        except requests.exceptions.ConnectionError as e:
+                print('domain_does_not_exit')
+                driver.quit()
 
     stripped_urls = urls[0:2]
     accept_words_list = set()            # add the txt list as a set
@@ -101,7 +122,7 @@ def main():
             candidate = None
             screen_shot_name = get_screenshot_name(website_visit['domain'],'_pre_consent') 
             print(screen_shot_name)
-            #driver.save_screenshot(screen_shot_name) # taking the secreenshot before accepting
+            driver.save_screenshot(screen_shot_name) # taking the secreenshot before accepting
 
             for c in contents:
                 try: 
@@ -127,8 +148,9 @@ def main():
                 not_found_clicks.append(url)
 
             time.sleep(10)
-            screen_shot_name = get_screenshot_name(website_visit['domain'],'_post_consent')
-            driver.save_screenshot(screen_shot_name) # taking the secreenshot after  accepting the cookies
+            screen_shot_name_post = get_screenshot_name(website_visit['domain'],'_post_consent')
+            print(screen_shot_name_post)
+            driver.save_screenshot(screen_shot_name_post) # taking the secreenshot after  accepting the cookies
 
             req_response=list()
 
