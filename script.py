@@ -15,6 +15,8 @@ import requests
 import argparse
 import csv
 
+from error_handler import ErrorHandler
+
 ## Crawler desktop and mobile // DONE
 ## Headless // DONE
 ## Logs
@@ -103,11 +105,15 @@ def main():
                 accept_words_list.add(w)
 
     print(stripped_urls)
+    stripped_urls = ['http://expried.badssl.com']
     for url in stripped_urls: 
-        if check_TLS(url):
-            print ("TLS error")
-        else:
-            driver = configure_driver()
+        driver = configure_driver()
+        error_handler = ErrorHandler(driver,url)
+        
+        if error_handler.error_counter > 0:
+            print("************************* error count************ "+ str(error_handler.error_counter))
+            driver.quit()
+        else:    
             website_visit={} # dictionary for generating the json for each file
             website_visit['pageload_start_ts'] = time.time() # start time 
             driver.get(url)
@@ -131,9 +137,7 @@ def main():
                         break
                 except:
                     website_visit['consent_status']="errored"
-                    errored_clicks_count = errored_clicks_count + 1
-
-                            
+                    errored_clicks_count = errored_clicks_count + 1           
             # Click the candidate
             if candidate is not None:
                 try: 

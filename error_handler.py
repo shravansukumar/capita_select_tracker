@@ -1,49 +1,58 @@
 from seleniumwire import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
-from tld import get_fld
-from PIL import Image
-from datetime import datetime
-import time
-import json
-import sys, getopt
 import requests
-import argparse
-import csv
 
+class ErrorHandler:
+    ## Instance variables
+    url_to_be_tested: str
+    driver: webdriver
 
-driver = webdriver.Firefox() 
+    ## Local variables
+    error_counter = 0 
+    tls_error_count = 0 
+    time_out_error_count = 0 
+    domain_error_count = 0 
 
-try: 
-    def check_TLS(URL):                                         # TLS error
+    def __init__(self, driver,url_to_be_tested):
+        self.driver = driver
+        self.url_to_be_tested = url_to_be_tested 
+        print(url_to_be_tested)    
+        self.run_all_checks()
+        
+    def check_TLS(self):                                         # TLS error
         try:
-            response = requests.get(URL)
-            return False
+            requests.get(self.url_to_be_tested)
         except requests.exceptions.RequestException as e:
             if 'CERTIFICATE_VERIFY_FAILED' in str(e):
                 print('TLS_error')
             elif 'hostname' in str(e):
                 print('TLS_error')
-            return True
+            self.error_counter = self.error_counter + 1
 
-
-    def time_out(url):                              # timeout error code 
+    def time_out(self):                              # timeout error code 
         try:
-            driver.set_page_load_timeout(30)
-            driver.get(url)
+            self.driver.set_page_load_timeout(30)
+            self.driver.get(self.url_to_be_tested)
         except TimeoutException as e:
             print('time_out')
-            driver.quit()
+            self.error_counter =self.error_counter + 1 
+            
 
-    def domain_not_exit(url):      # domian does not exit we do not need this in anaylsis report
+    def domain_not_exit(self):      # domian does not exit we do not need this in anaylsis report
         try:
-            response = requests.get(url)
+            requests.get(self.url_to_be_tested)
         except requests.exceptions.ConnectionError as e:
+            self.error_counter =self.error_counter + 1
             print('domain_does_not_exit')
-            driver.quit()
 
-except Exception as e:
-    print("Other Execption "+ str(e))
+    def run_all_checks(self):
+        try:
+            self.check_TLS()
+            self.time_out()
+            self.domain_not_exit()
+        except Exception as e:
+            print('Unknown exception:' + str(e))
+            self.error_counter =self.error_counter + 1
+            
+
+   

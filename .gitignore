@@ -2,3 +2,4 @@
 *.json
 chromedriver
 .DS_Store
+__pycache__
