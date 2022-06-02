@@ -59,9 +59,11 @@ def main():
     def configure_driver():
         webdriver_options = webdriver.ChromeOptions()
         if isMobile:    
-            webdriver_options.add_argument('--user-agent="Mozilla/5.0 (Windows Phone 10.0; Android 4.2.1; Microsoft; Lumia 640 XL LTE) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Mobile Safari/537.36 Edge/12.10166"')
+            webdriver_options.add_argument('--user-agent="Mozilla/5.0 (iPhone; CPU iPhone OS 15_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/101.0.4951.44 Mobile/15E148 Safari/604.1"')
+           #webdriver_options.add_argument('window-size=500,500')
         if isHeadless:
             webdriver_options.add_argument('--headless')
+            webdriver_options.add_argument('--log-level=3')
         driver = webdriver.Chrome("./chromedriver",chrome_options = webdriver_options)
         #user_agent = driver.execute_script("return navigator.userAgent;")
         return driver
@@ -69,14 +71,14 @@ def main():
     def get_screenshot_name(domain: str, type:str):
         return domain+'_'+parsed_stuff.isMobile+type+'.png'
         
-    stripped_urls = urls[0:1]
+    #stripped_urls = urls[0:1]
     accept_words_list = set()            # add the txt list as a set
     for w in open("accept_words.txt", "r").read().splitlines():
         if not w.startswith("#") and not w == "":
                 accept_words_list.add(w)
 
-    print(stripped_urls)
-    #stripped_urls = ['http://expried.badssl.com']
+    #print(stripped_urls)
+    stripped_urls = ['http://google.com']
     for url in stripped_urls: 
         driver = configure_driver()
         error_handler = ErrorHandler(driver,url,logger)
@@ -95,13 +97,13 @@ def main():
             website_visit['crawl_mode']= 'mobile' if isMobile == True else 'desktop'  # need to be changed later to desktop or mobile
 
             #contents = driver.find_elements_by_css_selector("a, button, div, span, form, p")
-            contents = driver.find_elements(by=By.CSS_SELECTOR,value="a, button, div, span, form, p")
-
+            contents = driver.find_elements(by=By.CSS_SELECTOR,value="a, button, div, span, form, p, btnG")
             candidate = None
             screen_shot_name = get_screenshot_name(website_visit['domain'],'_pre_consent') 
             driver.save_screenshot(screen_shot_name) # taking the secreenshot before accepting
-
+            
             for c in contents:
+                
                 try: 
                     if c.text.lower().strip(" ✓›!\n") in accept_words_list:
                         candidate = c  
