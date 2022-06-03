@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from asyncio.log import logger
+#from asyncio.log import logger
 #from turtle import st
 from seleniumwire import webdriver
 from selenium.webdriver.common.by import By
