@@ -161,7 +161,11 @@ def main():
                         req_resp['timestamp']=request.response.headers['date']
                     req_headers={}
                     for header in request.headers:
-                        req_headers[header]=request.headers[header][0:512]
+                        if(header.lower()=='cookie'):
+                            req_headers[header]=request.headers[header]
+                        else:
+                            req_headers[header]=request.headers[header][0:512]
+                        
                     req_resp['request_headers']=req_headers
                     if (request.response is not None):
                         resp_headers={}
