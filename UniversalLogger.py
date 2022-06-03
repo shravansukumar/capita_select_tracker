@@ -1,8 +1,6 @@
 from datetime import datetime
 import json
 
-from matplotlib.font_manager import json_dump
-
 class UniversalLogger:
     log_entry = []
 
