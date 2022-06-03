@@ -15,26 +15,36 @@ class ErrorHandler:
     error_counter = 0 
     tls_error_count = 0 
     time_out_error_count = 0 
-    domain_error_count = 0 
+    domain_error_count = 0
+    isMobile = False 
 
-    def __init__(self, driver, url_to_be_tested, logger):
+    def __init__(self, driver, url_to_be_tested, logger,isMobile):
         print('^^^^^ Error handler init ^^^^^^')
         self.driver = driver
         self.url_to_be_tested = url_to_be_tested 
         self.logger = logger
+        self.isMobile = isMobile
         print(url_to_be_tested)    
         self.run_all_checks()
         
     def check_TLS(self):                                         # TLS error
         try:
             print('^^^^^ checking for TLS ^^^^^^^^')
-            requests.get(self.url_to_be_tested)
+            requests.get(self.url_to_be_tested, timeout=60)
+        except requests.exceptions.Timeout as e:
+            self.error_counter = self.error_counter + 1
+            self.logger.log('TLS_error_timeout: '+ self.url_to_be_tested)
         except requests.exceptions.RequestException as e:
             if 'CERTIFICATE_VERIFY_FAILED' in str(e):
                 self.logger.log('TLS_error: '+ self.url_to_be_tested)
             elif 'hostname' in str(e):
                 self.logger.log('TLS_error: '+ self.url_to_be_tested)
+            error_count = self.logger.tls_error_dict['mobile' if self.isMobile == True else 'desktop']
+            error_count = error_count + 1
+            self.logger.tls_error_dict['mobile' if self.isMobile == True else 'desktop'] = error_count 
             self.error_counter = self.error_counter + 1
+
+    
 
     def time_out(self):                              # timeout error code 
         try:
