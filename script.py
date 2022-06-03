@@ -61,7 +61,8 @@ def main():
     def configure_driver():
         webdriver_options = webdriver.ChromeOptions()
         if isMobile:    
-            webdriver_options.add_argument('--user-agent="Mozilla/5.0 (Windows Phone 10.0; Android 4.2.1; Microsoft; Lumia 640 XL LTE) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Mobile Safari/537.36 Edge/12.10166"')
+            webdriver_options.add_argument('--user-agent="Mozilla/5.0 (iPhone; CPU iPhone OS 15_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/101.0.4951.44 Mobile/15E148 Safari/604.1"')
+           #webdriver_options.add_argument('window-size=500,500')
         if isHeadless:
             webdriver_options.add_argument('--headless')
         webdriver_options.add_argument('--no-sandbox')
@@ -76,6 +77,7 @@ def main():
     def get_screenshot_name(domain: str, type:str):
         return domain+'_'+parsed_stuff.isMobile+type+'.png'
         
+    #stripped_urls = urls[0:1]
     accept_words_list = set()            # add the txt list as a set
     for w in open("accept_words.txt", "r").read().splitlines():
         if not w.startswith("#") and not w == "":
@@ -84,7 +86,7 @@ def main():
     stripped_urls_2 = ['http://www.macromedia.com']
     stripped_urls = ['http://www.163.com','http://www.youdao.com',' http://www.gvt1.com','http://www.so.com','http://www.www.gov.uk',' http://www.cloudfront.net','http://www.wa.me',' http://www.ytimg.com','http://www.pikiran-rakyat.com','http://www.forms.gle','http://www.akamaiedge.net','http://www.yahoo.co.jp','http://www.macromedia.com','http://www.adobe.com','http://www.hao123.com']
     
-    for url in stripped_urls_2: 
+    for url in stripped_urls: 
         driver = configure_driver()
         error_handler = ErrorHandler(driver,url,logger)
         
