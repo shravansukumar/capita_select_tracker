@@ -258,3 +258,6 @@ zustimmen und weiter
 Я согласен
 allow essential and optional cookies
 accepteren
+i agree!
+ok, got it
+akkoord
