@@ -83,12 +83,12 @@ def main():
         if not w.startswith("#") and not w == "":
                 accept_words_list.add(w)
 
-    stripped_urls_2 = ['http://www.macromedia.com']
-    stripped_urls = ['http://www.163.com','http://www.youdao.com',' http://www.gvt1.com','http://www.so.com','http://www.www.gov.uk',' http://www.cloudfront.net','http://www.wa.me',' http://www.ytimg.com','http://www.pikiran-rakyat.com','http://www.forms.gle','http://www.akamaiedge.net','http://www.yahoo.co.jp','http://www.macromedia.com','http://www.adobe.com','http://www.hao123.com']
+    stripped_urls_2 = urls[0:5]
+    stripped_urls = ['http://www.so.com','http://www.www.gov.uk','http://www.cloudfront.net','http://www.wa.me',' http://www.ytimg.com','http://www.forms.gle','http://www.hao123.com', 'http://expired.badssl.com']
     
-    for url in stripped_urls: 
+    for url in stripped_urls_2: 
         driver = configure_driver()
-        error_handler = ErrorHandler(driver,url,logger)
+        error_handler = ErrorHandler(driver,url,logger,isMobile)
         
         if error_handler.error_counter > 0:
             logger.dump_json()
@@ -137,6 +137,9 @@ def main():
                     except:
                         website_visit['consent_status']="errored"
                         logger.log("Error in clicking accept for: " + url)
+                        error_count = logger.click_error_dict['mobile' if isMobile == True else 'desktop']
+                        error_count = error_count + 1
+                        logger.click_error_dict['mobile' if isMobile == True else 'desktop'] = error_count
                         errored_clicks_count = errored_clicks_count + 1
                 else:
                     website_visit["consent_status"]="not_found"
@@ -167,14 +170,16 @@ def main():
                         req_resp['response_headers']=resp_headers
                         req_response.append(req_resp)
                 website_visit['requests']=req_response
-                file_name=website_visit['domain'] + '.json'
+                file_name=website_visit['domain'] +'_'+ parsed_stuff.isMobile+ '.json'
 
-                print(file_name)
                 with open(file_name, 'w') as out:
                     json.dump(website_visit, out,indent=4)
             
             except TimeoutException as time_out_exc:#, WebDriverException, Exception as e:
                 logger.log('Timeout exception: '+ str(time_out_exc.msg) + ' ' + url)
+                error_count = logger.time_out_error_dict['mobile' if isMobile == True else 'desktop']
+                error_count = error_count + 1
+                logger.time_out_error_dict['mobile' if isMobile == True else 'desktop'] = error_count 
                 driver.quit()
             except WebDriverException as web_driver_exc:
                 logger.log('Webdriver exception: '+ str(web_driver_exc.msg) + ' ' + url) 
@@ -188,6 +193,7 @@ def main():
         except(WebDriverException,Exception) as general_exc:
             logger.log('Quitting driver when already quit '+ str(general_exc))
     logger.dump_json()
+    logger.dump_counter_logs()
 
 if __name__ == "__main__":
     main()
