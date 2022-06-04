@@ -69,7 +69,7 @@ def main():
     stripped_urls_2 = urls[0:25]
     stripped_urls = ['http://www.so.com','http://www.www.gov.uk','http://www.cloudfront.net','http://www.wa.me',' http://www.ytimg.com','http://www.forms.gle','http://www.hao123.com', 'http://expired.badssl.com']
     
-    for url in stripped_urls_2: 
+    for url in urls: 
         driver = configure_driver()
         error_handler = ErrorHandler(driver,url,logger,isMobile)
         
@@ -144,7 +144,11 @@ def main():
                         req_resp['timestamp']=request.response.headers['date']
                     req_headers={}
                     for header in request.headers:
-                        req_headers[header]=request.headers[header][0:512]
+                        if(header.lower()=='cookie'):
+                            req_headers[header]=request.headers[header]
+                        else:
+                            req_headers[header]=request.headers[header][0:512]
+                        
                     req_resp['request_headers']=req_headers
                     if (request.response is not None):
                         resp_headers={}
