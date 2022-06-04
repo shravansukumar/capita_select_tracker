@@ -117,7 +117,8 @@ def main():
                         website_visit['consent_status']="clicked"
                         logger.log("Successfully clicked accept for: " + url)
                         successful_clicks_count = successful_clicks_count + 1
-                    except:
+                    except Exception as e:
+                        logger.log(e)
                         website_visit['consent_status']="errored"
                         logger.log("Error in clicking accept for: " + url)
                         error_count = logger.click_error_dict['mobile' if isMobile == True else 'desktop']
@@ -132,9 +133,6 @@ def main():
                 time.sleep(10)
                 screen_shot_name_post = get_screenshot_name(website_visit['domain'],'_post_consent')
                 driver.save_screenshot(screen_shot_name_post) # taking the secreenshot after  accepting the cookies
-
-
-                #print(driver.execute_script('return window.document.referrer'))
                 req_response=list()
 
                 for request in driver.requests:

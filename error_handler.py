@@ -37,14 +37,14 @@ class ErrorHandler:
         except requests.exceptions.RequestException as e:
             if 'CERTIFICATE_VERIFY_FAILED' in str(e):
                 self.logger.log('TLS_error: '+ self.url_to_be_tested)
+                self.log_tls_errors()
             elif 'hostname' in str(e):
                 self.logger.log('TLS_error: '+ self.url_to_be_tested)
-            error_count = self.logger.tls_error_dict['mobile' if self.isMobile == True else 'desktop']
-            error_count = error_count + 1
-            self.logger.tls_error_dict['mobile' if self.isMobile == True else 'desktop'] = error_count 
-            self.error_counter = self.error_counter + 1
-
-    
+                self.log_tls_errors()
+#            error_count = self.logger.tls_error_dict['mobile' if self.isMobile == True else 'desktop']
+ #           error_count = error_count + 1
+  #          self.logger.tls_error_dict['mobile' if self.isMobile == True else 'desktop'] = error_count 
+   #         self.error_counter = self.error_counter + 1
 
     def time_out(self):                              # timeout error code 
         try:
@@ -53,8 +53,7 @@ class ErrorHandler:
                 self.driver.get(self.url_to_be_tested)
         except (TimeoutException,WebDriverException) as e:
             self.logger.log('time_out: '+str(e.msg) + ' ' + self.url_to_be_tested)
-            self.error_counter = self.error_counter + 1 
-            
+            self.error_counter = self.error_counter + 1         
 
     def domain_not_exit(self):      # domian does not exit we do not need this in anaylsis report
         try:
@@ -63,6 +62,13 @@ class ErrorHandler:
         except (requests.exceptions.ConnectionError,requests.exceptions.Timeout) as e:
             self.error_counter = self.error_counter + 1
             self.logger.log('domain_does_not_exit: '+ str(e) +' '+ self.url_to_be_tested)
+
+    def log_tls_errors(self):
+        error_count = self.logger.tls_error_dict['mobile' if self.isMobile == True else 'desktop']
+        error_count = error_count + 1
+        self.logger.tls_error_dict['mobile' if self.isMobile == True else 'desktop'] = error_count 
+        self.error_counter = self.error_counter + 1
+ 
 
 
     def run_all_checks(self):
