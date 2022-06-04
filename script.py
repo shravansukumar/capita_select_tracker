@@ -83,10 +83,10 @@ def main():
         if not w.startswith("#") and not w == "":
                 accept_words_list.add(w)
 
-    stripped_urls_2 = urls[0:5]
+    #stripped_urls_2 = urls[0:5]
     stripped_urls = ['http://www.so.com','http://www.www.gov.uk','http://www.cloudfront.net','http://www.wa.me',' http://www.ytimg.com','http://www.forms.gle','http://www.hao123.com', 'http://expired.badssl.com']
     
-    for url in stripped_urls_2: 
+    for url in urls: 
         driver = configure_driver()
         error_handler = ErrorHandler(driver,url,logger,isMobile)
         
