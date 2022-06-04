@@ -83,14 +83,13 @@ def main():
             website_visit['pageload_start_ts'] = time.time() # start time
 
             try: 
-                driver.set_page_load_timeout(60)
+                driver.set_page_load_timeout(180)
                 driver.get(url)
                 website_visit['pageload_end_ts']=time.time()
                 time.sleep(10)
                 website_visit['post_pageload_url'] = driver.current_url   #loaded the url
                 website_visit['domain'] = get_fld(url)  # the domain of every website
                 website_visit['crawl_mode']= 'mobile' if isMobile == True else 'desktop'  # need to be changed later to desktop or mobile
-                #contents = driver.find_elements_by_css_selector("a, button, div, span, form, p")
                 contents = driver.find_elements(by=By.CSS_SELECTOR,value="a, button, div, span, form, p")
 
                 candidate = None
@@ -99,7 +98,6 @@ def main():
 
                 for c in contents:
                     try: 
-                       # print('$$$$$$$$$ Entering try block for content $$$$$$$$$$$$$$')
                         if c.text.lower().strip(" ✓›!\n") in accept_words_list:
                             candidate = c  
                             break
@@ -112,12 +110,12 @@ def main():
                 # Click the candidate
                 if candidate is not None:
                     try: 
-                      #  print('$$$$$$$$$ Entering try block for candicate $$$$$$$$$$$$$$')
                         candidate.click()
                         website_visit['consent_status']="clicked"
                         logger.log("Successfully clicked accept for: " + url)
                         successful_clicks_count = successful_clicks_count + 1
-                    except:
+                    except Exception as e:
+                        logger.log(e)
                         website_visit['consent_status']="errored"
                         logger.log("Error in clicking accept for: " + url)
                         error_count = logger.click_error_dict['mobile' if isMobile == True else 'desktop']
@@ -132,9 +130,6 @@ def main():
                 time.sleep(10)
                 screen_shot_name_post = get_screenshot_name(website_visit['domain'],'_post_consent')
                 driver.save_screenshot(screen_shot_name_post) # taking the secreenshot after  accepting the cookies
-
-
-                #print(driver.execute_script('return window.document.referrer'))
                 req_response=list()
 
                 for request in driver.requests:
