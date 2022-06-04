@@ -13,6 +13,7 @@ class ErrorHandler:
 
     ## Local variables
     isMobile = False 
+    error_counter = 0 
 
     def __init__(self, driver, url_to_be_tested, logger,isMobile):
         print('^^^^^ Error handler init ^^^^^^')
