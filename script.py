@@ -1,31 +1,14 @@
 # -*- coding: utf-8 -*-
-#from asyncio.log import logger
-#from turtle import st
 from seleniumwire import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import WebDriverException, TimeoutException
 from tld import get_fld
-from PIL import Image
 import time
 import json
 import argparse
 import csv
 from UniversalLogger import UniversalLogger
-
 from error_handler import ErrorHandler
-
-## Crawler desktop and mobile // DONE
-## Headless // DONE
-## Logs // DONE
-## Logs accept button success // DONE
-## Global timeout value
-## Screenshot names change for mobile and desktop // DONE
-## Handle domains that do not exist //a //DONE
-## Page load errors //a //DONE
-## Add all variables needed for the analysis // DONE (yesterday itself?)
 
 def main():
     parser = argparse.ArgumentParser()
@@ -83,7 +66,7 @@ def main():
         if not w.startswith("#") and not w == "":
                 accept_words_list.add(w)
 
-    stripped_urls_2 = urls[0:5]
+    stripped_urls_2 = urls[0:25]
     stripped_urls = ['http://www.so.com','http://www.www.gov.uk','http://www.cloudfront.net','http://www.wa.me',' http://www.ytimg.com','http://www.forms.gle','http://www.hao123.com', 'http://expired.badssl.com']
     
     for url in stripped_urls_2: 
