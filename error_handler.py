@@ -12,10 +12,6 @@ class ErrorHandler:
     logger : UniversalLogger
 
     ## Local variables
-    error_counter = 0 
-    tls_error_count = 0 
-    time_out_error_count = 0 
-    domain_error_count = 0
     isMobile = False 
 
     def __init__(self, driver, url_to_be_tested, logger,isMobile):
