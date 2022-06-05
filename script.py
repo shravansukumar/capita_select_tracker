@@ -66,6 +66,10 @@ def main():
         if not w.startswith("#") and not w == "":
                 accept_words_list.add(w)
 
+    def try_clicking_button_with_script(driver):
+        element = driver.find_elements(by=By.CSS_SELECTOR,value="a, button, div, span, form, p") 
+        driver.execute_script("arguments[0].click();")
+
     stripped_urls_2 = urls[0:25]
     stripped_urls = ['http://www.so.com','http://www.www.gov.uk','http://www.cloudfront.net','http://www.wa.me',' http://www.ytimg.com','http://www.forms.gle','http://www.hao123.com', 'http://expired.badssl.com']
     

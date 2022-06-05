@@ -43,9 +43,12 @@ class ErrorHandler:
         try:
             print('^^^^^^ trying to seaarch for domain ^^^^^^^^')
             requests.get(self.url_to_be_tested,timeout=180)
-        except (requests.exceptions.ConnectionError,requests.exceptions.Timeout) as e:
+        except (requests.exceptions.ConnectionError) as e:
             self.error_counter = self.error_counter + 1
             self.logger.log('domain_does_not_exit: '+ str(e) +' '+ self.url_to_be_tested)
+        except(requests.exceptions.Timeout) as time_out_exc:
+            self.error_counter = self.error_counter + 1
+            self.logger.log('Timed out while fetching domain: '+ str(time_out_exc) +' '+ self.url_to_be_tested)
 
     def log_tls_errors(self):
         error_count = self.logger.tls_error_dict['mobile' if self.isMobile == True else 'desktop']
