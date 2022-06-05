@@ -18,13 +18,13 @@ def main():
     parser.add_argument('-head','--isHeadless',type=str,default='headfull',choices=['headless','headfull'])
     parsed_stuff = parser.parse_args()
     urls = []
-    logger = UniversalLogger()
-
+    
     successful_clicks_count = 0 
     errored_clicks_count = 0
     not_found_clicks = []
     isMobile = True if parsed_stuff.isMobile == 'mobile' else False
     isHeadless = True if parsed_stuff.isHeadless == 'headless' else False
+    logger = UniversalLogger(isMobile)
 
     def build_url():
         if parsed_stuff.singleURL != None:
@@ -68,12 +68,12 @@ def main():
 
     def try_clicking_button_with_script(driver):
         element = driver.find_elements(by=By.CSS_SELECTOR,value="a, button, div, span, form, p") 
-        driver.execute_script("arguments[0].click();")
+        driver.execute_script("arguments[0].click();",element)
 
-    stripped_urls_2 = urls[0:25]
+    stripped_urls_2 = ['http://www.netflix.net']
     stripped_urls = ['http://www.so.com','http://www.www.gov.uk','http://www.cloudfront.net','http://www.wa.me',' http://www.ytimg.com','http://www.forms.gle','http://www.hao123.com', 'http://expired.badssl.com']
     
-    for url in urls: 
+    for url in stripped_urls_2: 
         driver = configure_driver()
         error_handler = ErrorHandler(driver,url,logger,isMobile)
         
@@ -87,7 +87,7 @@ def main():
             website_visit['pageload_start_ts'] = time.time() # start time
 
             try: 
-                driver.set_page_load_timeout(180)
+                driver.set_page_load_timeout(120)
                 driver.get(url)
                 website_visit['pageload_end_ts']=time.time()
                 time.sleep(10)

@@ -27,7 +27,7 @@ class ErrorHandler:
     def check_TLS(self):                                         # TLS error
         try:
             print('^^^^^ checking for TLS ^^^^^^^^')
-            requests.get(self.url_to_be_tested, timeout=180)
+            requests.get(self.url_to_be_tested, timeout=120)
         except requests.exceptions.Timeout as e:
             self.error_counter = self.error_counter + 1
             self.logger.log('TLS_error_timeout: '+ self.url_to_be_tested)
@@ -42,7 +42,7 @@ class ErrorHandler:
     def domain_not_exit(self):      # domian does not exit we do not need this in anaylsis report
         try:
             print('^^^^^^ trying to seaarch for domain ^^^^^^^^')
-            requests.get(self.url_to_be_tested,timeout=180)
+            requests.get(self.url_to_be_tested,timeout=120)
         except (requests.exceptions.ConnectionError) as e:
             self.error_counter = self.error_counter + 1
             self.logger.log('domain_does_not_exit: '+ str(e) +' '+ self.url_to_be_tested)
