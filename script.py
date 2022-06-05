@@ -2,6 +2,7 @@
 from seleniumwire import webdriver
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import WebDriverException, TimeoutException
+from selenium.webdriver.common.action_chains import ActionChains
 from tld import get_fld
 import time
 import json
@@ -35,11 +36,15 @@ def main():
                 for url_data in data:
                     url_data_str = url_data[1]
                     if not url_data_str.startswith("http://") and not url_data_str.startswith("https://"):
-                        url_data_str = "http://www." + url_data_str
+                        if url_data_str.startswith("www."):
+                            url_data_str = "http://" + url_data_str
+                        else:
+                            url_data_str = "http://www." + url_data_str
                     urls.append(url_data_str)
         urls.remove('http://www.domain')
 
     build_url()
+    print(len(urls))
 
     def configure_driver():
         webdriver_options = webdriver.ChromeOptions()
@@ -67,13 +72,21 @@ def main():
                 accept_words_list.add(w)
 
     def try_clicking_button_with_script(driver):
-        element = driver.find_elements(by=By.CSS_SELECTOR,value="a, button, div, span, form, p") 
+        nodelist = []
+        nodes = driver.find_elements(by=By.CSS_SELECTOR,value="a, button, div, span, form, p") 
+        for node in nodes:
+            print(node)
+            ActionChains(driver).move_to_element(node).click().perform()
+            time.sleep(0.5)
+            nodelist.append(driver.find_elements(by=By.CSS_SELECTOR,value="a, button, div, span, form, p").text)
+            ActionChains(driver).move_to_element(node).click().perform()
+
         driver.execute_script("arguments[0].click();",element)
 
-    stripped_urls_2 = ['http://www.netflix.net']
+    stripped_urls_2 = ['http://www.aliyun.com','http://www.msedge.net','http://www.adnxs.com','http://www.amsterdam.craigslist.org','http://www.alicdn.com']
     stripped_urls = ['http://www.so.com','http://www.www.gov.uk','http://www.cloudfront.net','http://www.wa.me',' http://www.ytimg.com','http://www.forms.gle','http://www.hao123.com', 'http://expired.badssl.com']
     
-    for url in stripped_urls_2: 
+    for url in urls: 
         driver = configure_driver()
         error_handler = ErrorHandler(driver,url,logger,isMobile)
         
@@ -120,6 +133,7 @@ def main():
                         successful_clicks_count = successful_clicks_count + 1
                     except Exception as e:
                         logger.log(e)
+                       # try_clicking_button_with_script(driver)
                         website_visit['consent_status']="errored"
                         logger.log("Error in clicking accept for: " + url)
                         error_count = logger.click_error_dict['mobile' if isMobile == True else 'desktop']
@@ -161,7 +175,7 @@ def main():
                 with open(file_name, 'w') as out:
                     json.dump(website_visit, out,indent=4)
             
-            except TimeoutException as time_out_exc:#, WebDriverException, Exception as e:
+            except TimeoutException as time_out_exc:
                 logger.log('Timeout exception: '+ str(time_out_exc.msg) + ' ' + url)
                 error_count = logger.time_out_error_dict['mobile' if isMobile == True else 'desktop']
                 error_count = error_count + 1

@@ -47,6 +47,9 @@ class ErrorHandler:
             self.error_counter = self.error_counter + 1
             self.logger.log('domain_does_not_exit: '+ str(e) +' '+ self.url_to_be_tested)
         except(requests.exceptions.Timeout) as time_out_exc:
+            error_count = self.logger.time_out_error_dict['mobile' if self.isMobile == True else 'desktop']
+            error_count = error_count + 1
+            self.logger.time_out_error_dict['mobile' if self.isMobile == True else 'desktop'] = error_count 
             self.error_counter = self.error_counter + 1
             self.logger.log('Timed out while fetching domain: '+ str(time_out_exc) +' '+ self.url_to_be_tested)
 
