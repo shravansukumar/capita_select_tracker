@@ -17,7 +17,7 @@ def main():
     parser.add_argument('-m','--isMobile',type=str,choices=['mobile','desktop'])
     parser.add_argument('-u','--singleURL',type=str)
     parser.add_argument('-i','--csvFileUrl',type=str)
-    parser.add_argument('-head','--isHeadless',type=str,default='headfull',choices=['headless','headfull'])
+    parser.add_argument('-head','--isHeadless',type=str,default='headless',choices=['headless','headfull'])
     parsed_stuff = parser.parse_args()
     urls = []
     
@@ -245,7 +245,7 @@ def main():
                 logger.log('Webdriver exception: '+ str(web_driver_exc.msg) + ' ' + url) 
                 driver.quit()   
             except Exception as exc:
-                logger.log('Other exception: '+ str(exc.msg) + ' ' + url)  
+                logger.log('Other exception: '+ str(exc) + ' ' + url)  
                 driver.quit()
         try:
             driver.quit()  
