@@ -10,6 +10,7 @@ import argparse
 import csv
 from UniversalLogger import UniversalLogger
 from error_handler import ErrorHandler
+import base64
 
 def main():
     parser = argparse.ArgumentParser()
@@ -44,7 +45,65 @@ def main():
         urls.remove('http://www.domain')
 
     build_url()
-    print(len(urls))
+
+    def execute_cdp(driver):
+        SCR = """
+        // overwrite a given function
+        const interceptFunctionCall = function (elementType, funcName) {
+            // save the original function using a closure
+            const origFunc = elementType.prototype[funcName];
+            // overwrite the object property
+            Object.defineProperty(elementType.prototype, funcName, {
+                "value": function () {
+                    // execute the original function
+                    const retVal = origFunc.apply(this, arguments);
+                    // initialize call details with return value and arguments
+                    callDetails = {
+                        elementType: elementType.name,
+                        funcName: funcName,
+                        args: arguments,
+                        retVal: retVal
+                        };
+                    const LS_CANVAS_KEY_NAME = "__canvas_intercepted_calls__";
+                    // read the existing calls from local storage
+                    let recordedCalls = JSON.parse(localStorage.getItem(LS_CANVAS_KEY_NAME));
+                    if(recordedCalls == null){
+                        recordedCalls = []; // initialize
+                    }
+                    // add the current call to the list
+                    recordedCalls.push(callDetails);
+                    // save the updated list to local storage
+                    localStorage.setItem(LS_CANVAS_KEY_NAME, JSON.stringify(recordedCalls));
+                    console.log('[CANVAS]', elementType.name, funcName, arguments, retVal);
+                    return retVal;
+                }
+            });
+        };
+        // you may need to intercept more functions
+        interceptFunctionCall(HTMLCanvasElement, 'toDataURL');
+        interceptFunctionCall(CanvasRenderingContext2D, 'fillText');
+        """
+        driver.execute_cdp_cmd(
+        'Page.addScriptToEvaluateOnNewDocument',
+        {'source': SCR}
+        )
+
+    def perform_canvas_fp(driver,url):
+        img_ret_value = (driver.execute_script("return localStorage.getItem('__canvas_intercepted_calls__')"))
+        if img_ret_value != None:
+            img = img_ret_value.split("base64,")
+            img_base64 = str.encode(img[1])
+            if isMobile == True:
+                prefix_fp = 'mobile_'
+            else:
+                prefix_fp = 'desktop_'
+            img_name = 'canvas_fp_' + prefix_fp + str(get_fld(url))+'.png'
+            with open(img_name, "wb") as fh:
+                fh.write(base64.decodebytes(img_base64))
+                logger.log('Generated canvas_fp image for: '+ url)
+        else:
+            logger.log('Unable to get canvas_fp for url: '+ url)
+
 
     def configure_driver():
         webdriver_options = webdriver.ChromeOptions()
@@ -83,10 +142,10 @@ def main():
 
         driver.execute_script("arguments[0].click();",element)
 
-    stripped_urls_2 = ['http://www.aliyun.com','http://www.msedge.net','http://www.adnxs.com','http://www.amsterdam.craigslist.org','http://www.alicdn.com']
-    stripped_urls = ['http://www.so.com','http://www.www.gov.uk','http://www.cloudfront.net','http://www.wa.me',' http://www.ytimg.com','http://www.forms.gle','http://www.hao123.com', 'http://expired.badssl.com']
+    stripped_urls_2 = urls[0:10]#['http://www.aliyun.com','http://www.msedge.net','http://www.adnxs.com','http://www.amsterdam.craigslist.org','http://www.alicdn.com']
+    stripped_urls = ['http://www.youtube.com','http://www.baidu.com']
     
-    for url in urls: 
+    for url in stripped_urls: 
         driver = configure_driver()
         error_handler = ErrorHandler(driver,url,logger,isMobile)
         
@@ -101,6 +160,7 @@ def main():
 
             try: 
                 driver.set_page_load_timeout(120)
+                execute_cdp(driver)
                 driver.get(url)
                 website_visit['pageload_end_ts']=time.time()
                 time.sleep(10)
@@ -108,7 +168,7 @@ def main():
                 website_visit['domain'] = get_fld(url)  # the domain of every website
                 website_visit['crawl_mode']= 'mobile' if isMobile == True else 'desktop'  # need to be changed later to desktop or mobile
                 contents = driver.find_elements(by=By.CSS_SELECTOR,value="a, button, div, span, form, p")
-
+                perform_canvas_fp(driver,url)
                 candidate = None
                 screen_shot_name = get_screenshot_name(website_visit['domain'],'_pre_consent') 
                 driver.save_screenshot(screen_shot_name) # taking the secreenshot before accepting
@@ -187,7 +247,6 @@ def main():
             except Exception as exc:
                 logger.log('Other exception: '+ str(exc.msg) + ' ' + url)  
                 driver.quit()
-        #print('$$$$$$$$$ Trying to quit driver after computation $$$$$$$$$$$$$$')
         try:
             driver.quit()  
         except(WebDriverException,Exception) as general_exc:
