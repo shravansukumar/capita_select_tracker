@@ -145,7 +145,7 @@ def main():
     stripped_urls_2 = urls[0:10]#['http://www.aliyun.com','http://www.msedge.net','http://www.adnxs.com','http://www.amsterdam.craigslist.org','http://www.alicdn.com']
     stripped_urls = ['http://www.youtube.com','http://www.baidu.com']
     
-    for url in stripped_urls: 
+    for url in urls: 
         driver = configure_driver()
         error_handler = ErrorHandler(driver,url,logger,isMobile)
         
