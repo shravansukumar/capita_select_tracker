@@ -23,7 +23,9 @@ class UniversalLogger:
         self.log_entry.append(entry_log)
 
     def dump_json(self):
-        with open('log.json','w') as output_file:
+        file_name_prefix = '_mobile' if self.isMobile == True else '_desktop'
+        file_name = 'log'+file_name_prefix+'.json'
+        with open(file_name,'w') as output_file:
             output_file.write(json.dumps(self.log_entry,indent=4))
 
     def handle_json_dumping_for_logs_with(self, file_name, log_dict):
